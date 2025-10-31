@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asilo Nido Arcobaleno</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+        }
+        header {
+            background-color: #ffb6c1;
+            padding: 20px;
+            text-align: center;
+            color: white;
+        }
+        nav {
+            background-color: #ffe4e1;
+            padding: 10px;
+            text-align: center;
+        }
+        nav a {
+            margin: 0 15px;
+            text-decoration: none;
+            color: #333;
+            font-weight: bold;
+        }
+        section {
+            padding: 40px 20px;
+        }
+        h2 {
+            color: #ff69b4;
+        }
+        .activities, .teachers {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .card {
+            background-color: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            flex: 1 1 250px;
+        }
+        footer {
+            background-color: #ffb6c1;
+            color: white;
+            text-align: center;
+            padding: 15px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Asilo Nido Arcobaleno</h1>
+        <p>Un luogo sicuro e felice per i tuoi bambini</p>
+    </header>
+
+    <nav>
+        <a href="#about">Chi siamo</a>
+        <a href="#activities">Attività</a>
+        <a href="#teachers">Insegnanti</a>
+        <a href="#contact">Contatti</a>
+    </nav>
+
+    <section id="about">
+        <h2>Chi siamo</h2>
+        <p>L'Asilo Nido Arcobaleno offre un ambiente stimolante e sicuro per bambini dai 6 mesi ai 5 anni. Il nostro obiettivo è crescere insieme ai bambini attraverso giochi educativi, creatività e attenzione personalizzata.</p>
+    </section>
+
+    <section id="activities">
+        <h2>Le nostre attività</h2>
+        <div class="activities">
+            <div class="card">
+                <h3>Giochi creativi</h3>
+                <p>Pittura, modellazione e attività artistiche per stimolare la fantasia dei bambini.</p>
+            </div>
+            <div class="card">
+                <h3>Musica e movimento</h3>
+                <p>Laboratori musicali per sviluppare ritmo, coordinazione e divertimento.</p>
+            </div>
+            <div class="card">
+                <h3>Attività all'aperto</h3>
+                <p>Giochi nel giardino, passeggiate e momenti di scoperta della natura.</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="teachers">
+        <h2>I nostri insegnanti</h2>
+        <div class="teachers">
+            <div class="card">
+                <h3>Maria Rossi</h3>
+                <p>Educatrice esperta in giochi creativi e sviluppo emozionale.</p>
+            </div>
+            <div class="card">
+                <h3>Luca Bianchi</h3>
+                <p>Specialista in attività motorie e musicali per bambini piccoli.</p>
+            </div>
+        </div>
+    </section>
