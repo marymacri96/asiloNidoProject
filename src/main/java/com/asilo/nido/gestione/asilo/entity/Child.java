@@ -4,6 +4,7 @@ import lombok.Data;
 
 import java.io.Serializable;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -42,11 +43,11 @@ public class Child implements Serializable {
     @ManyToOne
     @JoinColumn(name = "id_teacher")
     private Teacher teacher;
-
-    @OneToMany(mappedBy = "child", cascade = CascadeType.ALL, orphanRemoval = true)
+    
+    @OneToMany(mappedBy = "child", cascade = CascadeType.ALL, orphanRemoval = true,fetch = FetchType.EAGER)
     private List<Note> notes;
 
-    @OneToMany(mappedBy = "child", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "child", cascade = CascadeType.ALL, orphanRemoval = true,fetch = FetchType.EAGER)
     private List<Attendance> attendances;
 
     /*@OneToMany(mappedBy = "child", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -64,6 +65,8 @@ public class Child implements Serializable {
         this.email = email;
         this.telefono = telefono;
         this.teacher = teacher;
+        this.notes=new ArrayList<>();
+        this.attendances= new ArrayList<>();
     }
 
     

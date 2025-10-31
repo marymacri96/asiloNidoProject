@@ -4,6 +4,8 @@ import org.springframework.stereotype.Service;
 import com.asilo.nido.gestione.asilo.entity.Child;
 import com.asilo.nido.gestione.asilo.repository.ChildRepository;
 
+import jakarta.transaction.Transactional;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -14,11 +16,13 @@ public class ChildService {
 
 
     // 🔹 Salva un nuovo Child
+	@Transactional
     public Child saveChild(Child child) {
         return childRepository.save(child);
     }
 
     // 🔹 Aggiorna un Child esistente
+	@Transactional
     public Child updateChild(Long id, Child updatedChild) {
         Optional<Child> optionalChild = childRepository.findById(id);
 
@@ -41,11 +45,13 @@ public class ChildService {
     }
 
     // 🔹 Recupera tutti i Child
+    @Transactional
     public List<Child> getAllChildren() {
         return childRepository.findAll();
     }
 
     // 🔹 Recupera un Child per ID
+    @Transactional
     public Optional<Child> getChildById(Long id) {
         return childRepository.findById(id);
     }
@@ -56,26 +62,31 @@ public class ChildService {
     }
 
     // 🔹 Ricerca per nome
+    @Transactional
     public List<Child> getChildrenByNome(String nome) {
         return childRepository.findByNome(nome);
     }
 
     // 🔹 Ricerca per cognome
+    @Transactional
     public List<Child> getChildrenByCognome(String cognome) {
         return childRepository.findByCognome(cognome);
     }
 
     // 🔹 Ricerca per classe
+    @Transactional
     public List<Child> getChildrenByClasse(String classe) {
         return childRepository.findByClasse(classe);
     }
 
     // 🔹 Ricerca per nome parziale
+    @Transactional
     public List<Child> getChildrenByNomePartial(String partialNome) {
         return childRepository.findByNomeContainingIgnoreCase(partialNome);
     }
 
     // 🔹 Ricerca per cognome parziale
+    @Transactional
     public List<Child> getChildrenByCognomePartial(String partialCognome) {
         return childRepository.findByCognomeContainingIgnoreCase(partialCognome);
     }
