@@ -1,53 +1,52 @@
 package com.asilo.nido.gestione.asilo.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
 import jakarta.persistence.*;
-import lombok.Data;
-
 import java.io.Serializable;
 import java.time.LocalDate;
 
 @Entity
 @Table(name = "note")
-@Data
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Note implements Serializable {
-
-    
-	private static final long serialVersionUID = 1L;
 
     @Id
     @SequenceGenerator(name = "NoteSequence", sequenceName = "NOTE_ID_NOTE_SEQ", allocationSize = 1)
-   	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "NoteSequence")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "NoteSequence")
     @Column(name = "id_note")
     private Long id;
 
-    @Column(name = "testo", nullable = false, length = 500)
+    @Column(nullable = false, length = 500)
     private String testo;
 
-    @Column(name = "data", nullable = false)
+    @Column(nullable = false)
     private LocalDate data;
 
-    // Relazione ManyToOne con Child
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_child", nullable = false)
-    @JsonIgnoreProperties("notes")
+    @JsonIgnore
     private Child child;
 
-    // Relazione ManyToOne con Teacher
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_teacher", nullable = false)
-    @JsonIgnoreProperties("notes")
     private Teacher teacher;
 
     public Note() {}
 
-    public Note(String testo, LocalDate data, Child child, Teacher teacher) {
-        this.testo = testo;
-        this.data = data;
-        this.child = child;
-        this.teacher = teacher;
-    }
+    // GETTER & SETTER
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-  
+    public String getTesto() { return testo; }
+    public void setTesto(String testo) { this.testo = testo; }
+
+    public LocalDate getData() { return data; }
+    public void setData(LocalDate data) { this.data = data; }
+
+    public Child getChild() { return child; }
+    public void setChild(Child child) { this.child = child; }
+
+    public Teacher getTeacher() { return teacher; }
+    public void setTeacher(Teacher teacher) { this.teacher = teacher; }
 }

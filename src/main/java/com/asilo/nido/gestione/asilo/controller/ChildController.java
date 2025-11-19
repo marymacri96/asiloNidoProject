@@ -1,87 +1,68 @@
 package com.asilo.nido.gestione.asilo.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import com.asilo.nido.gestione.asilo.dto.ChildDTO;
+import com.asilo.nido.gestione.asilo.entity.Child;
+import com.asilo.nido.gestione.asilo.mapper.ChildMapper;
+import com.asilo.nido.gestione.asilo.service.ChildService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import com.asilo.nido.gestione.asilo.entity.Child;
-import com.asilo.nido.gestione.asilo.service.ChildService;
-
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/children")
 public class ChildController {
-	@Autowired
-    private  ChildService childService;
 
-    // CREATE
-    @PostMapping
-    public ResponseEntity<Child> createChild(@RequestBody Child child) {
-        Child savedChild = childService.saveChild(child);
-        return new ResponseEntity<>(savedChild, HttpStatus.CREATED);
+    private final ChildService childService;
+
+    public ChildController(ChildService childService) {
+        this.childService = childService;
     }
 
-    // READ ALL
     @GetMapping
-    public ResponseEntity<List<Child>> getAllChildren() {
-        return ResponseEntity.ok(childService.getAllChildren());
+    public ResponseEntity<List<ChildDTO>> getAllChildren() {
+        List<ChildDTO> children = childService.getAllChildren()
+                .stream()
+                .map(ChildMapper::toDTO)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(children);
     }
 
-    // READ BY ID
     @GetMapping("/{id}")
-    public ResponseEntity<Child> getChildById(@PathVariable Long id) {
-        return childService.getChildById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<ChildDTO> getChildById(@PathVariable Long id) {
+        Child child = childService.getChildById(id);
+        return ResponseEntity.ok(ChildMapper.toDTO(child));
     }
 
-    // UPDATE
+    @GetMapping("/teacher/{teacherId}")
+    public ResponseEntity<List<ChildDTO>> getChildrenByTeacher(@PathVariable Long teacherId) {
+        List<ChildDTO> children = childService.getChildrenByTeacher(teacherId)
+                .stream()
+                .map(ChildMapper::toDTO)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(children);
+    }
+
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public ResponseEntity<ChildDTO> createChild(@RequestBody ChildDTO childDTO) {
+        Child child = ChildMapper.toEntity(childDTO);
+        Child created = childService.createChild(child);
+        return new ResponseEntity<>(ChildMapper.toDTO(created), HttpStatus.CREATED);
+    }
+
     @PutMapping("/{id}")
-    public ResponseEntity<Child> updateChild(@PathVariable Long id, @RequestBody Child child) {
-        try {
-            Child updatedChild = childService.updateChild(id, child);
-            return ResponseEntity.ok(updatedChild);
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        }
+    public ResponseEntity<ChildDTO> updateChild(@PathVariable Long id, @RequestBody ChildDTO childDTO) {
+        Child childDetails = ChildMapper.toEntity(childDTO);
+        Child updated = childService.updateChild(id, childDetails);
+        return ResponseEntity.ok(ChildMapper.toDTO(updated));
     }
 
-    // DELETE
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteChild(@PathVariable Long id) {
-        childService.deleteChildById(id);
-        return ResponseEntity.noContent().build();
-    }
-
-    // SEARCH BY NOME
-    @GetMapping("/search/nome")
-    public ResponseEntity<List<Child>> getChildrenByNome(@RequestParam String nome) {
-        return ResponseEntity.ok(childService.getChildrenByNome(nome));
-    }
-
-    // SEARCH BY COGNOME
-    @GetMapping("/search/cognome")
-    public ResponseEntity<List<Child>> getChildrenByCognome(@RequestParam String cognome) {
-        return ResponseEntity.ok(childService.getChildrenByCognome(cognome));
-    }
-
-    // SEARCH BY CLASSE
-    @GetMapping("/search/classe")
-    public ResponseEntity<List<Child>> getChildrenByClasse(@RequestParam String classe) {
-        return ResponseEntity.ok(childService.getChildrenByClasse(classe));
-    }
-
-    // SEARCH BY NOME PARZIALE
-    @GetMapping("/search/nome-partial")
-    public ResponseEntity<List<Child>> getChildrenByNomePartial(@RequestParam String nome) {
-        return ResponseEntity.ok(childService.getChildrenByNomePartial(nome));
-    }
-
-    // SEARCH BY COGNOME PARZIALE
-    @GetMapping("/search/cognome-partial")
-    public ResponseEntity<List<Child>> getChildrenByCognomePartial(@RequestParam String cognome) {
-        return ResponseEntity.ok(childService.getChildrenByCognomePartial(cognome));
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteChild(@PathVariable Long id) {
+        childService.deleteChild(id);
     }
 }

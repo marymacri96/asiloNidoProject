@@ -1,58 +1,56 @@
 package com.asilo.nido.gestione.asilo.service;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 
 import com.asilo.nido.gestione.asilo.entity.Attendance;
+import com.asilo.nido.gestione.asilo.entity.Child;
+import com.asilo.nido.gestione.asilo.exception.AttendanceNotFoundException;
 import com.asilo.nido.gestione.asilo.repository.AttendanceRepository;
+import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class AttendanceService {
-	@Autowired
-    private  AttendanceRepository attendanceRepository;
 
- 
-    // Salva una nuova attendance
-    public Attendance saveAttendance(Attendance attendance) {
-        return attendanceRepository.save(attendance);
+    private final AttendanceRepository attendanceRepository;
+
+    public AttendanceService(AttendanceRepository attendanceRepository) {
+        this.attendanceRepository = attendanceRepository;
     }
 
-    // Aggiorna una attendance esistente
-    public Attendance updateAttendance(Long id, Attendance updatedAttendance) {
-        return attendanceRepository.findById(id).map(existing -> {
-            existing.setData(updatedAttendance.getData());
-            existing.setPresente(updatedAttendance.getPresente());
-            existing.setChild(updatedAttendance.getChild());
-            return attendanceRepository.save(existing);
-        }).orElseThrow(() -> new RuntimeException("Attendance non trovata con id: " + id));
-    }
-
-    // Recupera tutte le attendance
     public List<Attendance> getAllAttendances() {
         return attendanceRepository.findAll();
     }
 
-    // Recupera attendance per ID
-    public Optional<Attendance> getAttendanceById(Long id) {
-        return attendanceRepository.findById(id);
+    public Attendance getAttendanceById(Long id) {
+        return attendanceRepository.findById(id)
+                .orElseThrow(() -> new AttendanceNotFoundException(id));
     }
 
-    // Elimina attendance per ID
-    public void deleteAttendanceById(Long id) {
-        attendanceRepository.deleteById(id);
+    public List<Attendance> getAttendancesByChild(Child child) {
+        return attendanceRepository.findByChild(child);
     }
 
-    // Recupera tutte le attendance di un bambino
-   /* public List<Attendance> getAttendancesByChildId(Long idChild) {
-        return attendanceRepository.findByChildIdChild(idChild);
+    public List<Attendance> getAttendancesByDate(LocalDate data) {
+        return attendanceRepository.findByData(data);
     }
 
-    // Recupera attendance di un bambino in un intervallo di date
-    public List<Attendance> getAttendancesByChildIdAndDateRange(Long idChild, LocalDate startDate, LocalDate endDate) {
-        return attendanceRepository.findByChildIdChildAndDataBetween(idChild, startDate, endDate);
-    }*/
+    public Attendance createAttendance(Attendance attendance) {
+        return attendanceRepository.save(attendance);
+    }
+
+    public Attendance updateAttendance(Long id, Attendance attendanceDetails) {
+        Attendance attendance = getAttendanceById(id);
+
+        attendance.setData(attendanceDetails.getData());
+        attendance.setPresente(attendanceDetails.getPresente());
+        attendance.setChild(attendanceDetails.getChild());
+
+        return attendanceRepository.save(attendance);
+    }
+
+    public void deleteAttendance(Long id) {
+        Attendance attendance = getAttendanceById(id);
+        attendanceRepository.delete(attendance);
+    }
 }

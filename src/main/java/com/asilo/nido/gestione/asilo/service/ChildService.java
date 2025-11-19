@@ -1,93 +1,60 @@
-package com.asilo.nido.gestione.asilo.service;import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+package com.asilo.nido.gestione.asilo.service;
 
 import com.asilo.nido.gestione.asilo.entity.Child;
+import com.asilo.nido.gestione.asilo.entity.Teacher;
+import com.asilo.nido.gestione.asilo.exception.ChildNotFoundException;
 import com.asilo.nido.gestione.asilo.repository.ChildRepository;
-
-import jakarta.transaction.Transactional;
+import com.asilo.nido.gestione.asilo.repository.TeacherRepository;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class ChildService {
-	@Autowired
-    private  ChildRepository childRepository;
 
+    private final ChildRepository childRepository;
+    private final TeacherRepository teacherRepository;
 
-    // 🔹 Salva un nuovo Child
-	@Transactional
-    public Child saveChild(Child child) {
-        return childRepository.save(child);
+    public ChildService(ChildRepository childRepository, TeacherRepository teacherRepository) {
+        this.childRepository = childRepository;
+        this.teacherRepository = teacherRepository;
     }
 
-    // 🔹 Aggiorna un Child esistente
-	@Transactional
-    public Child updateChild(Long id, Child updatedChild) {
-        Optional<Child> optionalChild = childRepository.findById(id);
-
-        if (optionalChild.isPresent()) {
-            Child existingChild = optionalChild.get();
-
-            // Aggiornamento dei campi
-            existingChild.setNome(updatedChild.getNome());
-            existingChild.setCognome(updatedChild.getCognome());
-            existingChild.setDataNascita(updatedChild.getDataNascita());
-            existingChild.setClasse(updatedChild.getClasse());
-            existingChild.setEmail(updatedChild.getEmail());
-            existingChild.setTelefono(updatedChild.getTelefono());
-            existingChild.setTeacher(updatedChild.getTeacher()); // relazione N:1 con Teacher
-
-            return childRepository.save(existingChild);
-        } else {
-            throw new RuntimeException("Child non trovato con id: " + id);
-        }
-    }
-
-    // 🔹 Recupera tutti i Child
-    @Transactional
     public List<Child> getAllChildren() {
         return childRepository.findAll();
     }
 
-    // 🔹 Recupera un Child per ID
-    @Transactional
-    public Optional<Child> getChildById(Long id) {
-        return childRepository.findById(id);
+    public Child getChildById(Long id) {
+        return childRepository.findById(id)
+                .orElseThrow(() -> new ChildNotFoundException(id));
     }
 
-    // 🔹 Elimina un Child per ID
-    public void deleteChildById(Long id) {
-        childRepository.deleteById(id);
+    public List<Child> getChildrenByTeacher(Long teacherId) {
+        Teacher teacher = teacherRepository.findById(teacherId)
+                .orElseThrow(() -> new RuntimeException("Teacher non trovato con id: " + teacherId));
+        return childRepository.findByTeacher(teacher);
     }
 
-    // 🔹 Ricerca per nome
-    @Transactional
-    public List<Child> getChildrenByNome(String nome) {
-        return childRepository.findByNome(nome);
+    public Child createChild(Child child) {
+        return childRepository.save(child);
     }
 
-    // 🔹 Ricerca per cognome
-    @Transactional
-    public List<Child> getChildrenByCognome(String cognome) {
-        return childRepository.findByCognome(cognome);
+    public Child updateChild(Long id, Child childDetails) {
+        Child child = getChildById(id);
+
+        child.setNome(childDetails.getNome());
+        child.setCognome(childDetails.getCognome());
+        child.setDataNascita(childDetails.getDataNascita());
+        child.setClasse(childDetails.getClasse());
+        child.setEmail(childDetails.getEmail());
+        child.setTelefono(childDetails.getTelefono());
+        child.setTeacher(childDetails.getTeacher());
+
+        return childRepository.save(child);
     }
 
-    // 🔹 Ricerca per classe
-    @Transactional
-    public List<Child> getChildrenByClasse(String classe) {
-        return childRepository.findByClasse(classe);
+    public void deleteChild(Long id) {
+        Child child = getChildById(id);
+        childRepository.delete(child);
     }
-
-    // 🔹 Ricerca per nome parziale
-    @Transactional
-    public List<Child> getChildrenByNomePartial(String partialNome) {
-        return childRepository.findByNomeContainingIgnoreCase(partialNome);
-    }
-
-    // 🔹 Ricerca per cognome parziale
-    @Transactional
-    public List<Child> getChildrenByCognomePartial(String partialCognome) {
-        return childRepository.findByCognomeContainingIgnoreCase(partialCognome);
-    }
-} 
+}

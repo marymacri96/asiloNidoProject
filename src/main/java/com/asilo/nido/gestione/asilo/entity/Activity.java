@@ -1,50 +1,49 @@
 package com.asilo.nido.gestione.asilo.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
 import jakarta.persistence.*;
-import lombok.Data;
-
 import java.io.Serializable;
 import java.time.LocalDate;
+import java.util.List;
 
 @Entity
 @Table(name = "activity")
-@Data
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Activity implements Serializable {
 
-    
-	private static final long serialVersionUID = 1L;
-
-	@Id
+    @Id
     @SequenceGenerator(name = "ActivitySequence", sequenceName = "ACTIVITY_ID_ACTIVITY_SEQ", allocationSize = 1)
-	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "ActivitySequence")
-	@Column(name = "id_activity", unique = true, nullable = false)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "ActivitySequence")
+    @Column(name = "id_activity", unique = true, nullable = false)
     private Long id;
 
-    @Column(name = "nome", nullable = false, length = 100)
+    @Column(nullable = false, length = 100)
     private String nome;
 
-    @Column(name = "descrizione", length = 500)
+    @Column(length = 500)
     private String descrizione;
 
-    @Column(name = "data", nullable = false)
+    @Column(nullable = false)
     private LocalDate data;
 
-    // Relazione ManyToOne con Teacher
-    /*@ManyToOne
-    @JoinColumn(name = "id_teacher")
-    @JsonIgnoreProperties("activities")
-    private Teacher teacher;*/
+    @ManyToMany(mappedBy = "activities")
+    private List<Child> children;
 
     public Activity() {}
 
-    public Activity(String nome, String descrizione, LocalDate data, Teacher teacher) {
-        this.nome = nome;
-        this.descrizione = descrizione;
-        this.data = data;
-       // this.teacher = teacher;
-    }
+    // GETTER & SETTER
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-  
+    public String getNome() { return nome; }
+    public void setNome(String nome) { this.nome = nome; }
+
+    public String getDescrizione() { return descrizione; }
+    public void setDescrizione(String descrizione) { this.descrizione = descrizione; }
+
+    public LocalDate getData() { return data; }
+    public void setData(LocalDate data) { this.data = data; }
+
+    public List<Child> getChildren() { return children; }
+    public void setChildren(List<Child> children) { this.children = children; }
 }

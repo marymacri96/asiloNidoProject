@@ -1,56 +1,66 @@
 package com.asilo.nido.gestione.asilo.service;
-import org.springframework.beans.factory.annotation.Autowired;
+
+import com.asilo.nido.gestione.asilo.entity.Child;
+import com.asilo.nido.gestione.asilo.entity.Note;
+import com.asilo.nido.gestione.asilo.entity.Teacher;
+import com.asilo.nido.gestione.asilo.exception.NoteNotFoundException;
+import com.asilo.nido.gestione.asilo.repository.NoteRepository;
+import com.asilo.nido.gestione.asilo.repository.ChildRepository;
+import com.asilo.nido.gestione.asilo.repository.TeacherRepository;
 import org.springframework.stereotype.Service;
 
-import com.asilo.nido.gestione.asilo.entity.Note;
-import com.asilo.nido.gestione.asilo.repository.NoteRepository;
-
-import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class NoteService {
-	@Autowired
-    private NoteRepository noteRepository;
 
+    private final NoteRepository noteRepository;
+    private final ChildRepository childRepository;
+    private final TeacherRepository teacherRepository;
 
-    public Note saveNote(Note note) {
-        return noteRepository.save(note);
-    }
-
-    public Note updateNote(Long id, Note updatedNote) {
-        return noteRepository.findById(id)
-                .map(existingNote -> {
-                    existingNote.setTesto(updatedNote.getTesto());
-                    existingNote.setData(updatedNote.getData());
-                    existingNote.setChild(updatedNote.getChild());
-                    existingNote.setTeacher(updatedNote.getTeacher());
-                    return noteRepository.save(existingNote);
-                }).orElseThrow(() -> new RuntimeException("Nota non trovata con id " + id));
+    public NoteService(NoteRepository noteRepository, ChildRepository childRepository, TeacherRepository teacherRepository) {
+        this.noteRepository = noteRepository;
+        this.childRepository = childRepository;
+        this.teacherRepository = teacherRepository;
     }
 
     public List<Note> getAllNotes() {
         return noteRepository.findAll();
     }
 
-    public Optional<Note> getNoteById(Long id) {
-        return noteRepository.findById(id);
+    public Note getNoteById(Long id) {
+        return noteRepository.findById(id)
+                .orElseThrow(() -> new NoteNotFoundException(id));
     }
 
-    public void deleteNoteById(Long id) {
-        noteRepository.deleteById(id);
+    public List<Note> getNotesByChild(Long childId) {
+        Child child = childRepository.findById(childId)
+                .orElseThrow(() -> new RuntimeException("Child non trovato con id: " + childId));
+        return noteRepository.findByChild(child);
     }
 
-    /*public List<Note> getNotesByChildId(Long idChild) {
-        return noteRepository.findByChildIdChild(idChild);
+    public List<Note> getNotesByTeacher(Long teacherId) {
+        Teacher teacher = teacherRepository.findById(teacherId)
+                .orElseThrow(() -> new RuntimeException("Teacher non trovato con id: " + teacherId));
+        return noteRepository.findByTeacher(teacher);
     }
 
-    public List<Note> getNotesByTeacherId(Long idTeacher) {
-        return noteRepository.findByTeacherIdTeacher(idTeacher);
+    public Note createNote(Note note) {
+        return noteRepository.save(note);
     }
 
-    public List<Note> getNotesByChildIdAndDateRange(Long idChild, LocalDate startDate, LocalDate endDate) {
-        return noteRepository.findByChildIdChildAndDataBetween(idChild, startDate, endDate);
-    }*/
+    public Note updateNote(Long id, Note noteDetails) {
+        Note note = getNoteById(id);
+
+        note.setChild(noteDetails.getChild());
+        note.setTeacher(noteDetails.getTeacher());
+        note.setTesto(noteDetails.getTesto()); // presumo ci sia un campo testo
+
+        return noteRepository.save(note);
+    }
+
+    public void deleteNote(Long id) {
+        Note note = getNoteById(id);
+        noteRepository.delete(note);
+    }
 }

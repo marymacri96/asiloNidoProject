@@ -1,74 +1,85 @@
 package com.asilo.nido.gestione.asilo.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.format.annotation.DateTimeFormat;
+import com.asilo.nido.gestione.asilo.dto.AttendanceDTO;
+import com.asilo.nido.gestione.asilo.entity.Attendance;
+import com.asilo.nido.gestione.asilo.entity.Child;
+import com.asilo.nido.gestione.asilo.mapper.AttendanceMapper;
+import com.asilo.nido.gestione.asilo.service.AttendanceService;
+import com.asilo.nido.gestione.asilo.service.ChildService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import com.asilo.nido.gestione.asilo.entity.Attendance;
-import com.asilo.nido.gestione.asilo.service.AttendanceService;
-
 import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/attendances")
 public class AttendanceController {
-	@Autowired
-    private AttendanceService attendanceService;
 
-    // CREATE
-    @PostMapping
-    public ResponseEntity<Attendance> createAttendance(@RequestBody Attendance attendance) {
-        Attendance savedAttendance = attendanceService.saveAttendance(attendance);
-        return new ResponseEntity<>(savedAttendance, HttpStatus.CREATED);
+    private final AttendanceService attendanceService;
+    private final ChildService childService;
+
+    public AttendanceController(AttendanceService attendanceService, ChildService childService) {
+        this.attendanceService = attendanceService;
+        this.childService = childService;
     }
 
-    // READ ALL
     @GetMapping
-    public ResponseEntity<List<Attendance>> getAllAttendances() {
-        return ResponseEntity.ok(attendanceService.getAllAttendances());
+    public ResponseEntity<List<AttendanceDTO>> getAllAttendances() {
+        List<AttendanceDTO> attendances = attendanceService.getAllAttendances()
+                .stream()
+                .map(AttendanceMapper::toDTO)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(attendances);
     }
 
-    // READ BY ID
     @GetMapping("/{id}")
-    public ResponseEntity<Attendance> getAttendanceById(@PathVariable Long id) {
-        return attendanceService.getAttendanceById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<AttendanceDTO> getAttendanceById(@PathVariable Long id) {
+        Attendance attendance = attendanceService.getAttendanceById(id);
+        return ResponseEntity.ok(AttendanceMapper.toDTO(attendance));
     }
 
-    // UPDATE
+    @GetMapping("/child/{childId}")
+    public ResponseEntity<List<AttendanceDTO>> getAttendancesByChild(@PathVariable Long childId) {
+        Child child = childService.getChildById(childId);
+        List<AttendanceDTO> attendances = attendanceService.getAttendancesByChild(child)
+                .stream()
+                .map(AttendanceMapper::toDTO)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(attendances);
+    }
+
+    @GetMapping("/date/{date}")
+    public ResponseEntity<List<AttendanceDTO>> getAttendancesByDate(@PathVariable String date) {
+        LocalDate localDate = LocalDate.parse(date);
+        List<AttendanceDTO> attendances = attendanceService.getAttendancesByDate(localDate)
+                .stream()
+                .map(AttendanceMapper::toDTO)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(attendances);
+    }
+
+    @PostMapping
+    public ResponseEntity<AttendanceDTO> createAttendance(@RequestBody AttendanceDTO dto) {
+        Child child = childService.getChildById(dto.getChildId());
+        Attendance attendance = AttendanceMapper.toEntity(dto, child);
+        Attendance created = attendanceService.createAttendance(attendance);
+        return new ResponseEntity<>(AttendanceMapper.toDTO(created), HttpStatus.CREATED);
+    }
+
     @PutMapping("/{id}")
-    public ResponseEntity<Attendance> updateAttendance(@PathVariable Long id, @RequestBody Attendance attendance) {
-        try {
-            Attendance updated = attendanceService.updateAttendance(id, attendance);
-            return ResponseEntity.ok(updated);
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        }
+    public ResponseEntity<AttendanceDTO> updateAttendance(@PathVariable Long id, @RequestBody AttendanceDTO dto) {
+        Child child = childService.getChildById(dto.getChildId());
+        Attendance attendanceDetails = AttendanceMapper.toEntity(dto, child);
+        Attendance updated = attendanceService.updateAttendance(id, attendanceDetails);
+        return ResponseEntity.ok(AttendanceMapper.toDTO(updated));
     }
 
-    // DELETE
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteAttendance(@PathVariable Long id) {
-        attendanceService.deleteAttendanceById(id);
-        return ResponseEntity.noContent().build();
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteAttendance(@PathVariable Long id) {
+        attendanceService.deleteAttendance(id);
     }
-
-    // GET BY CHILD ID
-   /* @GetMapping("/child/{idChild}")
-    public ResponseEntity<List<Attendance>> getAttendancesByChild(@PathVariable Long idChild) {
-        return ResponseEntity.ok(attendanceService.getAttendancesByChildId(idChild));
-    }*/
-
-    // GET BY CHILD ID AND DATE RANGE
-    /*@GetMapping("/child/{idChild}/daterange")
-    public ResponseEntity<List<Attendance>> getAttendancesByChildAndDateRange(
-            @PathVariable Long idChild,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end) {
-        return ResponseEntity.ok(attendanceService.getAttendancesByChildIdAndDateRange(idChild, start, end));
-    }*/
 }

@@ -1,63 +1,46 @@
 package com.asilo.nido.gestione.asilo.service;
 
-
-import org.springframework.beans.factory.annotation.Autowired;
+import com.asilo.nido.gestione.asilo.entity.Activity;
+import com.asilo.nido.gestione.asilo.exception.ActivityNotFoundException;
+import com.asilo.nido.gestione.asilo.repository.ActivityRepository;
 import org.springframework.stereotype.Service;
 
-import com.asilo.nido.gestione.asilo.entity.Activity;
-import com.asilo.nido.gestione.asilo.repository.ActivityRepository;
-
-import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class ActivityService {
-	@Autowired
-    private ActivityRepository activityRepository;
 
+    private final ActivityRepository activityRepository;
 
-    public Activity saveActivity(Activity activity) {
-        return activityRepository.save(activity);
-    }
-
-    public Activity updateActivity(Long id, Activity updatedActivity) {
-        return activityRepository.findById(id)
-                .map(existing -> {
-                    existing.setNome(updatedActivity.getNome());
-                    existing.setData(updatedActivity.getData());
-                    //existing.setTeacher(updatedActivity.getTeacher());
-                    existing.setDescrizione(updatedActivity.getDescrizione());
-                    return activityRepository.save(existing);
-                }).orElseThrow(() -> new RuntimeException("Activity non trovato con id: " + id));
+    public ActivityService(ActivityRepository activityRepository) {
+        this.activityRepository = activityRepository;
     }
 
     public List<Activity> getAllActivities() {
         return activityRepository.findAll();
     }
 
-    public Optional<Activity> getActivityById(Long id) {
-        return activityRepository.findById(id);
+    public Activity getActivityById(Long id) {
+        return activityRepository.findById(id)
+                .orElseThrow(() -> new ActivityNotFoundException(id));
     }
 
-    public void deleteActivityById(Long id) {
-        activityRepository.deleteById(id);
+    public Activity createActivity(Activity activity) {
+        return activityRepository.save(activity);
     }
 
-    /*public List<Activity> getActivitiesByTeacherId(Integer idTeacher) {
-        return activityRepository.findByTeacherIdTeacher(idTeacher);
-    }*/
+    public Activity updateActivity(Long id, Activity activityDetails) {
+        Activity activity = getActivityById(id);
 
-    public List<Activity> getActivitiesByNomePartial(String partialNome) {
-        return activityRepository.findByNomeContainingIgnoreCase(partialNome);
+        activity.setNome(activityDetails.getNome());
+        activity.setDescrizione(activityDetails.getDescrizione());
+        activity.setData(activityDetails.getData());
+
+        return activityRepository.save(activity);
     }
 
-    public List<Activity> getActivitiesByData(LocalDate data) {
-        return activityRepository.findByData(data);
-    }
-
-    public List<Activity> getActivitiesByDateRange(LocalDate startDate, LocalDate endDate) {
-        return activityRepository.findByDataBetween(startDate, endDate);
+    public void deleteActivity(Long id) {
+        Activity activityRepositoryById = getActivityById(id);
+        activityRepository.delete(activityRepositoryById);
     }
 }
-

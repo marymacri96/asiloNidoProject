@@ -1,84 +1,77 @@
 package com.asilo.nido.gestione.asilo.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import com.asilo.nido.gestione.asilo.dto.NoteDTO;
+import com.asilo.nido.gestione.asilo.entity.Note;
+import com.asilo.nido.gestione.asilo.mapper.NoteMapper;
+import com.asilo.nido.gestione.asilo.service.NoteService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import com.asilo.nido.gestione.asilo.entity.Note;
-import com.asilo.nido.gestione.asilo.service.NoteService;
-
-import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/notes")
 public class NoteController {
 
-	@Autowired
-    private NoteService noteService;
+    private final NoteService noteService;
 
-    // CREATE
-    @PostMapping
-    public ResponseEntity<Note> createNote(@RequestBody Note note) {
-        Note savedNote = noteService.saveNote(note);
-        return new ResponseEntity<>(savedNote, HttpStatus.CREATED);
+    public NoteController(NoteService noteService) {
+        this.noteService = noteService;
     }
 
-    // READ ALL
     @GetMapping
-    public ResponseEntity<List<Note>> getAllNotes() {
-        return ResponseEntity.ok(noteService.getAllNotes());
+    public ResponseEntity<List<NoteDTO>> getAllNotes() {
+        List<NoteDTO> notes = noteService.getAllNotes()
+                .stream()
+                .map(NoteMapper::toDTO)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(notes);
     }
 
-    // READ BY ID
     @GetMapping("/{id}")
-    public ResponseEntity<Note> getNoteById(@PathVariable Long id) {
-        return noteService.getNoteById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<NoteDTO> getNoteById(@PathVariable Long id) {
+        Note note = noteService.getNoteById(id);
+        return ResponseEntity.ok(NoteMapper.toDTO(note));
     }
 
-    // UPDATE
+    @GetMapping("/child/{childId}")
+    public ResponseEntity<List<NoteDTO>> getNotesByChild(@PathVariable Long childId) {
+        List<NoteDTO> notes = noteService.getNotesByChild(childId)
+                .stream()
+                .map(NoteMapper::toDTO)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(notes);
+    }
+
+    @GetMapping("/teacher/{teacherId}")
+    public ResponseEntity<List<NoteDTO>> getNotesByTeacher(@PathVariable Long teacherId) {
+        List<NoteDTO> notes = noteService.getNotesByTeacher(teacherId)
+                .stream()
+                .map(NoteMapper::toDTO)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(notes);
+    }
+
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public ResponseEntity<NoteDTO> createNote(@RequestBody NoteDTO noteDTO) {
+        Note note = NoteMapper.toEntity(noteDTO);
+        Note created = noteService.createNote(note);
+        return new ResponseEntity<>(NoteMapper.toDTO(created), HttpStatus.CREATED);
+    }
+
     @PutMapping("/{id}")
-    public ResponseEntity<Note> updateNote(@PathVariable Long id, @RequestBody Note note) {
-        try {
-            Note updatedNote = noteService.updateNote(id, note);
-            return ResponseEntity.ok(updatedNote);
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        }
+    public ResponseEntity<NoteDTO> updateNote(@PathVariable Long id, @RequestBody NoteDTO noteDTO) {
+        Note noteDetails = NoteMapper.toEntity(noteDTO);
+        Note updated = noteService.updateNote(id, noteDetails);
+        return ResponseEntity.ok(NoteMapper.toDTO(updated));
     }
 
-    // DELETE
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteNote(@PathVariable Long id) {
-        noteService.deleteNoteById(id);
-        return ResponseEntity.noContent().build();
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteNote(@PathVariable Long id) {
+        noteService.deleteNote(id);
     }
-
-    // SEARCH BY CHILD
-    /*@GetMapping("/child/{idChild}")
-    public ResponseEntity<List<Note>> getNotesByChild(@PathVariable Long idChild) {
-        return ResponseEntity.ok(noteService.getNotesByChildId(idChild));
-    }
-
-    // SEARCH BY TEACHER
-    @GetMapping("/teacher/{idTeacher}")
-    public ResponseEntity<List<Note>> getNotesByTeacher(@PathVariable Long idTeacher) {
-        return ResponseEntity.ok(noteService.getNotesByTeacherId(idTeacher));
-    }
-
-    // SEARCH BY CHILD AND DATE RANGE
-    @GetMapping("/child/{idChild}/daterange")
-    public ResponseEntity<List<Note>> getNotesByChildAndDateRange(
-            @PathVariable Long idChild,
-            @RequestParam("start") String startDateStr,
-            @RequestParam("end") String endDateStr
-    ) {
-        LocalDate startDate = LocalDate.parse(startDateStr);
-        LocalDate endDate = LocalDate.parse(endDateStr);
-        return ResponseEntity.ok(noteService.getNotesByChildIdAndDateRange(idChild, startDate, endDate));
-    }//org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'noteController': Unsatisfied dependency expressed through field 'noteService': Error creating bean with name 'noteService': Unsatisfied dependency expressed through field 'noteRepository': Error creating bean with name 'noteRepository' defined in com.asilo.nido.gestione.asilo.repository.NoteRepository defined in @EnableJpaRepositories declared on JpaRepositoriesRegistrar.EnableJpaRepositoriesConfiguration: Could not create query for public abstract java.util.List com.asilo.nido.gestione.asilo.repository.NoteRepository.findByTeacherIdTeacher(java.lang.Long); Reason: Failed to create query for method public abstract java.util.List com.asilo.nido.gestione.asilo.repository.NoteRepository.findByTeacherIdTeacher(java.lang.Long); No property 'teacher' found for type 'Long'; Traversed path: Note.teacher.id
-*/
 }

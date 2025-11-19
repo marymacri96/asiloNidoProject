@@ -1,43 +1,45 @@
 package com.asilo.nido.gestione.asilo.entity;
-import jakarta.persistence.*;
-import lombok.Data;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import jakarta.persistence.*;
 import java.io.Serializable;
 import java.time.LocalDate;
 
 @Entity
 @Table(name = "attendance")
-@Data
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Attendance implements Serializable {
 
-    
-	private static final long serialVersionUID = 1L;
-	
     @Id
     @SequenceGenerator(name = "AttendanceSequence", sequenceName = "ATTENDANCE_ID_ATTENDANCE_SEQ", allocationSize = 1)
-	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "AttendanceSequence")
-    @Column(name = "id_attendance",unique=true,nullable=false)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "AttendanceSequence")
+    @Column(name = "id_attendance", unique = true, nullable = false)
     private Long id;
 
-    @Column(name = "data", nullable = false)
+    @Column(nullable = false)
     private LocalDate data;
 
-    @Column(name = "presente", nullable = false)
+    @Column(nullable = false)
     private Boolean presente;
 
-    // Relazione N:1 con Child
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_child", nullable = false)
+    @JsonIgnore
     private Child child;
 
-    // Costruttori
     public Attendance() {}
 
-    public Attendance(LocalDate data, Boolean presente, Child child) {
-        this.data = data;
-        this.presente = presente;
-        this.child = child;
-    }
+    // GETTER & SETTER
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-   
+    public LocalDate getData() { return data; }
+    public void setData(LocalDate data) { this.data = data; }
+
+    public Boolean getPresente() { return presente; }
+    public void setPresente(Boolean presente) { this.presente = presente; }
+
+    public Child getChild() { return child; }
+    public void setChild(Child child) { this.child = child; }
 }

@@ -1,19 +1,15 @@
 package com.asilo.nido.gestione.asilo.repository;
 
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
-
 import com.asilo.nido.gestione.asilo.entity.Note;
+import com.asilo.nido.gestione.asilo.entity.Child;
+import com.asilo.nido.gestione.asilo.entity.Teacher;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.time.LocalDate;
 import java.util.List;
 
-@Repository
 public interface NoteRepository extends JpaRepository<Note, Long> {
 
-    //List<Note> findByChildIdChild(Long idChild);
+    List<Note> findByChild(Child child);
 
-    //List<Note> findByTeacherIdTeacher(Long idTeacher);
-
-    //List<Note> findByChildIdChildAndDataBetween(Long idChild, LocalDate startDate, LocalDate endDate);
+    List<Note> findByTeacher(Teacher teacher);
 }

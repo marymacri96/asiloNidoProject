@@ -1,16 +1,15 @@
 package com.asilo.nido.gestione.asilo.repository;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
 
 import com.asilo.nido.gestione.asilo.entity.Attendance;
+import com.asilo.nido.gestione.asilo.entity.Child;
+import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.LocalDate;
 import java.util.List;
 
-@Repository
 public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
 
-    //List<Attendance> findByChildIdChild(Long idChild);
+    List<Attendance> findByChild(Child child);
 
-   // List<Attendance> findByChildIdChildAndDataBetween(Long idChild, LocalDate startDate, LocalDate endDate);
+    List<Attendance> findByData(LocalDate data);
 }

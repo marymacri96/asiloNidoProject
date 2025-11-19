@@ -1,68 +1,70 @@
 package com.asilo.nido.gestione.asilo.service;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
+import com.asilo.nido.gestione.asilo.dto.TeacherRequestDTO;
+import com.asilo.nido.gestione.asilo.dto.TeacherResponseDTO;
 import com.asilo.nido.gestione.asilo.entity.Teacher;
 import com.asilo.nido.gestione.asilo.repository.TeacherRepository;
+import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class TeacherService {
 
-	@Autowired
-    private TeacherRepository teacherRepository;
-	
-    public Teacher saveTeacher(Teacher teacher) {
-        return teacherRepository.save(teacher);
+    private final TeacherRepository teacherRepository;
+
+    public TeacherService(TeacherRepository teacherRepository) {
+        this.teacherRepository = teacherRepository;
     }
 
-    public Teacher updateTeacher(Long id, Teacher updatedTeacher) {
-        return teacherRepository.findById(id)
-                .map(existingTeacher -> {
-                    existingTeacher.setNome(updatedTeacher.getNome());
-                    existingTeacher.setCognome(updatedTeacher.getCognome());
-                    existingTeacher.setClasse(updatedTeacher.getClasse());
-                    existingTeacher.setEmail(updatedTeacher.getEmail());
-                    existingTeacher.setTelefono(updatedTeacher.getTelefono());
-                    return teacherRepository.save(existingTeacher);
-                }).orElseThrow(() -> new RuntimeException("Teacher non trovato con id: " + id));
+    public TeacherResponseDTO createTeacher(TeacherRequestDTO requestDTO) {
+        Teacher teacher = new Teacher();
+        teacher.setNome(requestDTO.getNome());
+        teacher.setCognome(requestDTO.getCognome());
+        teacher.setEmail(requestDTO.getEmail());
+        teacher.setPassword(requestDTO.getPassword()); // da criptare se vuoi
+        teacher.setClasse(requestDTO.getClasse());
+        teacher.setTelefono(requestDTO.getTelefono());
+
+        teacher = teacherRepository.save(teacher); // salva nel DB e genera ID corretto
+
+        TeacherResponseDTO response = new TeacherResponseDTO();
+        response.setId(teacher.getId());
+        response.setNome(teacher.getNome());
+        response.setCognome(teacher.getCognome());
+        response.setEmail(teacher.getEmail());
+        response.setClasse(teacher.getClasse());
+        response.setTelefono(teacher.getTelefono());
+
+        return response;
     }
 
-    public List<Teacher> getAllTeachers() {
-        return teacherRepository.findAll();
+    public List<TeacherResponseDTO> getAllTeachers() {
+        List<TeacherResponseDTO> list = new ArrayList<>();
+        teacherRepository.findAll().forEach(teacher -> {
+            TeacherResponseDTO dto = new TeacherResponseDTO();
+            dto.setId(teacher.getId());
+            dto.setNome(teacher.getNome());
+            dto.setCognome(teacher.getCognome());
+            dto.setEmail(teacher.getEmail());
+            dto.setClasse(teacher.getClasse());
+            dto.setTelefono(teacher.getTelefono());
+            list.add(dto);
+        });
+        return list;
     }
 
-    public Optional<Teacher> getTeacherById(Long id) {
-        return teacherRepository.findById(id);
-    }
-
-    public void deleteTeacherById(Long id) {
-        teacherRepository.deleteById(id);
-    }
-
-    public Optional<Teacher> getTeacherByEmail(String email) {
-        return teacherRepository.findByEmail(email);
-    }
-
-    public List<Teacher> getTeachersByNome(String nome) {
-        return teacherRepository.findByNome(nome);
-    }
-
-    public List<Teacher> getTeachersByCognome(String cognome) {
-        return teacherRepository.findByCognome(cognome);
-    }
-
-    public List<Teacher> getTeachersByClasse(String classe) {
-        return teacherRepository.findByClasse(classe);
-    }
-
-    public List<Teacher> getTeachersByNomePartial(String partialNome) {
-        return teacherRepository.findByNomeContainingIgnoreCase(partialNome);
-    }
-
-    public List<Teacher> getTeachersByCognomePartial(String partialCognome) {
-        return teacherRepository.findByCognomeContainingIgnoreCase(partialCognome);
+    public TeacherResponseDTO getTeacherById(Long id) {
+        Teacher teacher = teacherRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Teacher not found with id: " + id));
+        TeacherResponseDTO dto = new TeacherResponseDTO();
+        dto.setId(teacher.getId());
+        dto.setNome(teacher.getNome());
+        dto.setCognome(teacher.getCognome());
+        dto.setEmail(teacher.getEmail());
+        dto.setClasse(teacher.getClasse());
+        dto.setTelefono(teacher.getTelefono());
+        return dto;
     }
 }
